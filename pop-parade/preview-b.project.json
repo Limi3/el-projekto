@@ -1,0 +1,42 @@
+{
+  "name": "PopParade-PreviewB",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "PopParade": {
+        "$className": "Folder",
+        "Content": {
+          "$path": "src/shared/content"
+        }
+      },
+      "PopParadeTestB": {
+        "$className": "Folder",
+        "Mock": {
+          "$path": "tests/b/mock"
+        }
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "PopParadeWorld": {
+        "$path": "src/server/world"
+      },
+      "PopParadeTestB": {
+        "$path": "tests/b/preview"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "PopParadeClient": {
+          "$path": "src/client"
+        }
+      }
+    },
+    "Workspace": {
+      "$className": "Workspace"
+    }
+  }
+}
