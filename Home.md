@@ -10,6 +10,7 @@ Hub for this project. Every note should be reachable from here.
 - Saud ([@SaudAlharbi1](https://github.com/SaudAlharbi1))
 
 ## Notes
+- [[POP PARADE]] — the Roblox game we're building (B side: world, client, UI)
 - [[Plan]] — goals and what we're building
 - [[Tasks]] — who's doing what
 
