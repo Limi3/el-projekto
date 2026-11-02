@@ -72,6 +72,16 @@ def node(name, spec):
         return body[: -len("</Item>")] + extra + "</Item>" if extra else body
     cls = spec.get("$className", "Folder")
     props = '<string name="Name">%s</string>' % escape(name)
+    # $properties subset: {"Enum": n} -> token, bool, number -> float, string
+    for pname, val in spec.get("$properties", {}).items():
+        if isinstance(val, dict) and "Enum" in val:
+            props += '<token name="%s">%d</token>' % (pname, val["Enum"])
+        elif isinstance(val, bool):
+            props += '<bool name="%s">%s</bool>' % (pname, "true" if val else "false")
+        elif isinstance(val, (int, float)):
+            props += '<float name="%s">%s</float>' % (pname, val)
+        else:
+            props += '<string name="%s">%s</string>' % (pname, escape(str(val)))
     inner = "".join(node(k, v) for k, v in spec.items() if not k.startswith("$"))
     return '<Item class="%s" referent="%s"><Properties>%s</Properties>%s</Item>' % (cls, ref(), props, inner)
 
