@@ -66,7 +66,7 @@ local function base(now: number): any
 			["offer.consumable.double_xp"] = { itemId = "consumable.double_xp", kind = "product", available = true, permanent = false },
 			["offer.soundpack.party"] = { itemId = "sound.kazoo_toot", kind = "pass", available = true, permanent = true },
 		},
-		settings = { music = 0.5, sfx = 0.8, reducedEffects = false, shake = true },
+		settings = { music = 0.5, sfx = 0.8, reducedEffects = false, shake = true, dof = true, bloom = true, sunRays = true, shadows = true },
 		run = nil,
 	}
 end
