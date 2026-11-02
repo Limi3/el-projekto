@@ -59,8 +59,7 @@ function PurchaseController.buy(self: any, offerId: string)
 		return
 	end
 	self.inFlight[offerId] = true
-	local action, payload = ctx.Actions.requestPurchase(offerId)
-	ctx.client:request(action, payload, function(r)
+	ctx.server:requestPurchase(offerId, function(r)
 		self.inFlight[offerId] = nil
 		if not r.ok then
 			ctx.toastError(r.code)

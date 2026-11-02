@@ -86,6 +86,9 @@ function BossPresenter._build(self: any)
 	mesh.Parent = body
 	body.CFrame = cf
 	body.Reflectance = 0.05
+	-- Invisible pedestal under the body while alive. Measured in Studio: the body's lowest point is
+	-- level with a player's head, so players walked underneath and the camera ended up inside the
+	-- boss. The pedestal keeps them at the front, where the knot (weak point) is in reach.
 	for side = -1, 1, 2 do
 		local eye = mk("Eye", Vector3.new(3.4, 3.4, 3.4), Color3.new(1, 1, 1), folder, Enum.PartType.Ball)
 		eye.CFrame = cf * CFrame.new(side * 3.6, 2.5, 10)
@@ -104,6 +107,14 @@ function BossPresenter._build(self: any)
 	local wp = stage.boss.weakPointOffset
 	local knot = mk("Knot", Vector3.new(3, 3, 3), Color3.fromRGB(200, 70, 110), folder)
 	knot.CFrame = cf * CFrame.new(wp.x, wp.y, wp.z) * CFrame.Angles(0, 0, math.rad(45))
+	local arenaTop = stage.boss.arenaCenter.y
+	local bottom = cf.Position.Y - 11
+	local h = math.max(2, bottom - arenaTop + 1)
+	local pedestal = mk("Pedestal", Vector3.new(h, 16, 16), PINK, folder, Enum.PartType.Cylinder)
+	pedestal.CFrame = CFrame.new(cf.Position.X, arenaTop + h / 2, cf.Position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	pedestal.Transparency = 1
+	pedestal.CanCollide = true
+	self.pedestal = pedestal
 	self.model = folder
 	self.body = body
 	self.mesh = mesh
@@ -183,6 +194,7 @@ function BossPresenter._state(self: any, ev: any)
 		-- the VICTORY banner is shown by WorldFeedback
 		local tw = TweenService:Create(self.mesh, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = Vector3.new(0.05, 0.05, 0.05) })
 		tw:Play()
+		self.pedestal.CanCollide = false
 		-- eyes, crown and knot pop away with the body
 		for _, part in (self.model :: Model):GetChildren() do
 			if part:IsA("BasePart") and part ~= self.body then
@@ -193,8 +205,9 @@ function BossPresenter._state(self: any, ev: any)
 		-- replay / new attempt: restore the boss
 		self.defeated = false
 		self.mesh.Scale = Vector3.new(1, 1.08, 1)
+		self.pedestal.CanCollide = true
 		for _, part in (self.model :: Model):GetChildren() do
-			if part:IsA("BasePart") then
+			if part:IsA("BasePart") and part ~= self.pedestal then
 				part.Transparency = 0
 			end
 		end
