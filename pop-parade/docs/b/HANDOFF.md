@@ -40,10 +40,64 @@ Run `git log --oneline feature/world-ui` for exact hashes. Milestones, oldest fi
 See `tests/b/README.md`. Short version: `tests/b/tools/check.sh` (luau-lsp + Roblox definitions, lint, 42 unit tests).
 
 ## Preview in Studio (B only, before integration)
-`rojo serve preview-b.project.json` → Studio → connect → Play. You'll see the hub, the Rubber route and the parkour course, with the mock auto-pop, HUD and all screens under a yellow TEST PREVIEW banner. Change `FIXTURE` in `tests/b/mock/MockTransport.luau` to preview other states.
+`rojo serve preview-b.project.json` → Studio → connect → Play. Without Rojo: `tests/b/tools/preview_build.sh` writes `build/PopParade-PreviewB.rbxlx`; open it in Studio and press Play. You'll see the hub, the Rubber route and the parkour course, with the mock auto-pop, HUD and all screens under a yellow TEST PREVIEW banner. Change `FIXTURE` in `tests/b/mock/MockTransport.luau` to preview other states.
 
 ## Known gaps and next steps (B)
-1. All Studio, device and two-client checks are **pending** (`TEST_RESULTS.md`).
+1. Single-client Studio checks done 2026-11-02; device, gamepad, two-client and purchase checks are **pending** (`TEST_RESULTS.md`).
 2. Sounds: no assets yet (`ASSET_MANIFEST.md`).
 3. Expansion: Wood stage 001, then Candy stage 001, only after the first slice integrates (`ART_DIRECTION.md`).
 4. Once A's contract lands: replace `ContentTypes.luau` with A's types, swap the fixtures for A's, then re-run the checks.
+
+---
+
+## Client architecture (B)
+
+```
+Bootstrap.client.luau ─ picks transport (RemoteTransport in production; MockTransport only in Studio when tests/b is mapped)
+  └ GameClient (src/client/GameClient)            ← the server adapter; only door to A
+       Protocol.luau   envelopes, revision/sequence/generation rules
+       Actions.luau    one builder per contract action (payload shapes)
+       RemoteTransport four RemoteEvents under ReplicatedStorage.PopParade.Remotes
+       signals: StateChanged(state, prev) · WorldEvent(ev) · BalloonState · WorldSnapshot · StatusChanged · LateResult · SchemaMismatch
+  └ App.luau  builds HUD, menu, panels, controllers; ctx = { client, Content, S, Actions, balance, toast, banner, openPanel, ... }
+       Controllers: BalloonRenderer, EffectsController, DamageNumbers, AudioController, CosmeticsController,
+                    PurchaseController, BossPresenter, ExtraJumpInput, WorldHints, WorldFeedback (new)
+       UI: Hud, Menu, Toasts, Banner (new), Panel + 9 panels, ItemCard, Kit/Theme/Icons
+       State: Selectors (pure reads of ClientState), Onboarding
+```
+
+### Adapter interface (what UI code may call)
+`client:request(action, payload, cb(result))` with `Actions.*` builders — `getState, getWorldSnapshot, buyUpgrade(id), setMoveSpeed(n), equipItem(slot, id?), setSetting(k, v), enterMode(m), enterStage(id), restartRun(), claimDaily(), requestSpin(), consumeItem(id), useSkipToken(stageId), requestPurchase(offerId), requestExtraJump(t, pos)`. Results are `{ ok, code?, data? }`; UI shows pending/disabled while a request is in flight and an error toast on failure. Nothing in the UI mutates state locally.
+
+**Conflict with the brief, resolved on the safe side:** the brief lists client calls like "hit balloon", "discover secret", "reach checkpoint". B deliberately has **no** client ops for these. Balloon hits, damage, checkpoints, secret discovery and boss damage are **server-detected by A** (position/volume checks); the client only renders A's events. This keeps clients from claiming rewards or damage.
+
+### Remotes
+| Remote | Direction | Message |
+|---|---|---|
+| `ActionRequest` | C→S | `{ v=1, requestId, action, payload }` |
+| `ActionResult` | S→C | `{ v=1, requestId, ok, code?, data? }` |
+| `StateUpdate` | S→C | `{ v=1, revision, serverTime, state=ClientState }` |
+| `WorldUpdate` | S→C | `{ v=1, sequence, stageId?, snapshot?, balloons[], events[] }` |
+Payloads and `ClientState` fields: `CONTRACT_REQUESTS.md §3–§5`.
+
+### HUD/world events B renders
+`Damage, Pop, Inflate, BossTelegraph, BossState, Checkpoint, SecretFound, WheelResult` (contract §3.6) plus **new B proposal:** `ParkourFinished { courseId }` → FINISH banner. Moment banners are driven by state: boss intro (run.boss appears), defeat (run.hearts → 0), victory (`BossState phase=defeated`).
+
+### Missing server operations (A to build)
+1. Checkpoint detection from the tagged volumes (`PopParadeCheckpoint`, `Order`, `StageId`) → `Checkpoint` event + `run.checkpointId`.
+2. Hazard behaviour by `BehaviorKey` (sweeper rpm, tack_mat damageHearts/invuln, puff_vent period/telegraph/active/push) using the layout params; hearts in `run.hearts`.
+3. Secret detection from `SecretsLayout` (server-only) → `secrets.found`, `buffs`, `SecretFound` event.
+4. Boss loop: telegraph events with `startsAt` in server time, damage only during the knot phase, `BossState`.
+5. Parkour finish detection from `PopParadeFinish` → `ParkourFinished` (or tell B your event name).
+6. Everything in `CONTRACT_REQUESTS.md` (balance accessor, offers with product IDs, daily, wheel, skip token).
+
+### Temporary development code (never in `default.project.json`)
+`tests/b/mock/*` (MockServer, MockTransport incl. mock checkpoints/hazard hearts/secret proximity/parkour finish, Fixtures), `tests/b/preview/PreviewServer.server.luau` (test world build + spawn), `tests/b/preview/PreviewHazards.server.luau` (test-only hazard motion), `tests/b/tools/build_place.py` (builds a .rbxlx when Rojo isn't installed). All are labelled TEST-ONLY and the preview shows a permanent TEST PREVIEW banner.
+
+### Integration steps (updated)
+1. Map paths per §1; keep `tests/b/**` out of `default.project.json`.
+2. Call `WorldBuilder.Build` in A's bootstrap; register manifest items in A's systems; keep secrets server-side.
+3. Create the 4 remotes and the Balance accessor.
+4. Implement the missing server ops above; send events with the payloads listed.
+5. Play `default.project.json` in Studio: the TEST PREVIEW banner must be **absent**; HUD should show A's real state.
+6. Run `tests/b/tools/check.sh`, then the PENDING list in `TEST_RESULTS.md` (two clients, phone emulator, gamepad, purchases).

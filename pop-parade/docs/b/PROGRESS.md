@@ -1,5 +1,23 @@
 # B progress log
 
+## 2026-11-02: playable preview in Roblox Studio
+
+**Done**
+- [x] Built and played the preview place in Studio (no Rojo: `tests/b/tools/build_place.py`).
+- [x] Fixed Studio-found bugs: spawn before world, More popup layout, sound names, Speed header icon, wheel spokes, toast/hint overlap, journal progress, journal icon, banner over HUD, boss parts left after defeat.
+- [x] World polish: section name signs + per-section lane colours on Rubber 001.
+- [x] WorldFeedback + Banner: checkpoint arches turn green with confetti; boss intro, VICTORY, POPPED!, FINISH banners.
+- [x] Test-only preview: hazard motion (sweeper, vents), mock checkpoints, hazard hearts + respawn, secret discovery, parkour finish.
+- [x] Docs: client architecture, adapter interface, remotes, missing server ops, temporary code (`HANDOFF.md`); `UI_DESIGN_SYSTEM.md`; Studio results (`TEST_RESULTS.md`).
+- [x] Checks: luau-lsp clean, lint ok, 42 unit tests passing.
+
+**Next**
+- [ ] A: foundation + server ops listed in `HANDOFF.md` → integrate and replay with real remotes.
+- [ ] Walk every secret and the full route on foot; vents push; parkour extra-jump shortcut.
+- [ ] Phone emulator, gamepad, two clients, purchases (pending in `TEST_RESULTS.md`).
+- [ ] Sounds from the owner; Figma library if Figma gets connected.
+
+
 ## 2026-11-01: first B slice (isolated; A's foundation pending)
 
 **Done**

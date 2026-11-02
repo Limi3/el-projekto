@@ -1,15 +1,15 @@
 # B test results
 
-Last run: **2026-11-01**, branch `feature/world-ui`. Command: `tests/b/tools/check.sh` (see `tests/b/README.md`).
+Last automated run: **2026-11-02** (42 passed). Last Studio session: **2026-11-02**, branch `feature/world-ui`. Command: `tests/b/tools/check.sh` (see `tests/b/README.md`).
 
-**Honesty rule:** "EXECUTED" means it actually ran here and passed. "PENDING" means it has **not** been done. Roblox Studio, real phones, controllers and two-client sessions were not available in this environment, and nothing below claims they were.
+**Honesty rule:** "EXECUTED" means it actually ran and the result is recorded as observed. "PENDING" means it has **not** been done. Roblox Studio *was* used on 2026-11-02 (single client, mock transport, keyboard + mouse, desktop window). Real phones, controllers, two-client sessions, A's server and real purchases were **not** tested.
 
 ## EXECUTED (automated, outside Studio)
 
 | Check | Tool | Result |
 |---|---|---|
 | Static type analysis, all B Luau (`src/client`, `src/server/world`, `src/shared/content`, `tests/b/mock`, `tests/b/preview`) against current Roblox API definitions | luau-lsp 1.70.1 `analyze` (definitions from luau-lsp main, Oct 2026), strict mode | **0 errors, 0 warnings** |
-| Lint: every literal string key exists; dynamic key families complete; no hardcoded `rbxassetid://` numbers; production code never references test-only code; no "100× earnings" claims; no prices/odds/product IDs/secret data in shared content | `tests/b/tools/lint.py` | **ok** (119 keys used, 261 defined) |
+| Lint: every literal string key exists; dynamic key families complete; no hardcoded `rbxassetid://` numbers; production code never references test-only code; no "100× earnings" claims; no prices/odds/product IDs/secret data in shared content | `tests/b/tools/lint.py` | **ok** (128 keys used, 280 defined) |
 | Unit tests (pure logic, Luau CLI) | `tests/b/tools/bundle.py` + `luau` | **42 passed, 0 failed** |
 
 ### What the 42 unit tests cover
@@ -24,16 +24,34 @@ Last run: **2026-11-01**, branch `feature/world-ui`. Command: `tests/b/tools/che
 - **Feel:** damage-number merging and capping; one-objective-at-a-time onboarding.
 - **Strings:** key families; catalog names; exact spec sentences; no invented sound IDs.
 
+
+## EXECUTED in Roblox Studio (2026-11-02, single client, TEST PREVIEW mock)
+
+Place built from `preview-b.project.json` with `tests/b/tools/build_place.py` (Rojo was not installed), opened in Studio, Play (F5). Teleports were done from the command bar to reach each area; walking was done with the keyboard.
+
+| Check | Result (observed) |
+|---|---|
+| World build, Output | **Pass.** `world built in 0.04–0.05s: 773 parts, 126 balloons, 6 checkpoints, 6 hazards, 3 secrets`; stage + parkour validation `ok=true`; no errors or warnings from B code |
+| Spawn order (world before character) | **Pass** after fix (`CharacterAutoLoads=false` + spawn after build) |
+| Balloon popping, coins/XP gain, damage numbers, onboarding hints | **Pass** (mock auto-attack) |
+| Panels: Needle/Speed/Attack upgrades, Sound, Inventory, Shop, Wheel, Rewards claim, Journal, Settings, More popup | **Pass** after fixes (More popup was laid out by the grid; sound names showed "Mystery Item"; Speed header icon; wheel spokes; toasts overlapped the hint; journal had no progress) |
+| Section identities: name signs "1 · WARM-UP WAY" … "KING PUFFER'S DRUM", per-section lane colours | **Pass** (signs readable at the arches, sections 2/3 visibly different hues) |
+| Checkpoint arrival (stage cp 02, parkour cp 01–04): arch turns green/neon, confetti, "Checkpoint!" toast | **Pass** (banner colour verified via command bar: cp 02 → Neon green) |
+| Sweeper Street: test-only rotating sweeper costs a heart, side-lane tack mats visible | **Pass** (hearts 3 → 2) |
+| Tack mats ×3 → defeat banner "POPPED!" → respawn at last checkpoint, hearts restored | **Pass** after fix (mock hit volume did not reach a standing character) |
+| King Puffer: intro banner, boss bar, wind-up/pulse/knot telegraphs, HP drops in knot phase, VICTORY banner, boss pops | **Pass** after fixes (banner moved below the HUD; eyes/crown/knot now vanish with the body) |
+| Golden secrets: Big Top, Fizzy Falls, Under the Bridge discovered (mock proximity), gold toasts, Journal 1/3 with description | **Pass** (reached by teleport, so the *walking* routes are still pending) |
+| Ribbon Run finish banner | **Pass on re-entry**; on the first pass the banner was not seen (mock-only flag ordering; A's real event replaces this) |
+
 ## PENDING: needs Roblox Studio / devices / A's systems
 
 | Check | Why pending | How to run |
 |---|---|---|
-| Studio build of `preview-b.project.json` (Rojo) and world visual review | Rojo/Studio not available here | `rojo serve preview-b.project.json`, connect from Studio, press Play; Output should print the `[PopParade TEST PREVIEW] world built …` line |
 | Walk the 100-slot route end to end with a default R15 at speed 16 (all gaps/ramps, catch-floor returns, bonus ledges) | needs Studio | play test; tick each section |
 | Walk all 3 secrets (headroom under the bridge, waterfall pass-through, crate → roof hop) | needs Studio | see `SECRETS.md` |
 | Parkour main path, shortcut with extra jump, fall → checkpoint | needs Studio + A's checkpoint handling | |
-| Hazard behaviour (sweeper, tack mats, vents) | **A runs behaviour**; B only built geometry | after integration |
-| Boss telegraph readability with real A events, Reduced Effects on/off | needs A's boss system | mock telegraphs exist for a visual check |
+| Hazard behaviour with A's real server logic (vents push, sweeper knockback) | **A runs behaviour**; the preview uses a test-only animator (`tests/b/preview/PreviewHazards.server.luau`); vent push not observed yet | after integration |
+| Boss with real A events; Reduced Effects on/off during the fight | needs A's boss system | mock telegraphs checked visually (above) |
 | Two clients: personal balloon state, nobody steals progress, others' cosmetics visible | needs Studio multi-client + A | Studio "Test → Clients: 2" |
 | Narrow phone layouts (e.g. 667×375, 844×390): menu clears thumbstick, jump button clear, touch targets ≥ 44 px | needs device emulator | Studio Device Emulator + a real phone |
 | Controller navigation (Y focuses menu, B closes, D-pad between buttons, focus ring visible) | needs a gamepad | |
