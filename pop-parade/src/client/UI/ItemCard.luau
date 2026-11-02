@@ -12,6 +12,19 @@ export type Card = { frame: Frame, status: TextLabel, button: TextButton, name: 
 
 function ItemCard.new(parent: Instance, Content: any, itemId: string, order: number, buttonText: string, onClick: () -> ()): Card
 	local desc = Content.VisualCatalog.get(itemId)
+	local audio = Content.AudioCatalog.get(itemId)
+	if not Content.VisualCatalog.has(itemId) and audio then
+		-- sounds live in AudioCatalog: use its name and a sound icon instead of the placeholder
+		desc = {
+			id = itemId,
+			slot = "Sound",
+			nameKey = audio.nameKey,
+			icon = "sound",
+			colors = { { r = 0.47, g = 0.47, b = 1 }, { r = 0.75, g = 0.6, b = 1 } },
+			premiumLook = audio.premiumPack ~= nil,
+			style = {},
+		}
+	end
 	local S = Content.Strings
 	local card = Kit.new("Frame", { Name = itemId, BackgroundColor3 = Theme.color.white, Size = UDim2.new(1, 0, 0, 92), LayoutOrder = order, Parent = parent })
 	Kit.corner(14).Parent = card

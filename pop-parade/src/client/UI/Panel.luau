@@ -16,7 +16,7 @@ export type Panel = {
 	isOpen: boolean,
 	open: (self: Panel) -> (),
 	close: (self: Panel) -> (),
-	setTitle: (self: Panel, text: string) -> (),
+	setTitle: (self: Panel, text: string, iconKey: string?) -> (),
 	closeButton: TextButton,
 }
 
@@ -39,8 +39,9 @@ function Panel.new(layer: Instance, opts: { name: string, title: string, icon: s
 	Kit.corner(18).Parent = header
 	-- square off the header's lower corners
 	Kit.new("Frame", { BackgroundColor3 = opts.color, BorderSizePixel = 0, Position = UDim2.new(0, 0, 1, -18), Size = UDim2.new(1, 0, 0, 18), Parent = header })
-	local icon = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromOffset(34, 34), Position = UDim2.fromOffset(14, 12), Parent = header })
+	local icon = Kit.new("Frame", { Name = "TitleIcon", BackgroundTransparency = 1, Size = UDim2.fromOffset(34, 34), Position = UDim2.fromOffset(14, 12), Parent = header })
 	Icons.draw(opts.icon, icon, Theme.color.white)
+	self.titleIcon = icon
 	local title = Kit.label(opts.title, { font = Theme.font.display, size = Theme.size.title, color = Theme.color.white, frameSize = UDim2.new(1, -140, 1, 0), stroke = true, wrap = false })
 	title.Position = UDim2.fromOffset(58, 0)
 	title.Parent = header
@@ -106,8 +107,12 @@ function Panel.close(self: any)
 	end
 end
 
-function Panel.setTitle(self: any, text: string)
+function Panel.setTitle(self: any, text: string, iconKey: string?)
 	self.titleLabel.Text = text
+	if iconKey then
+		self.titleIcon:ClearAllChildren()
+		Icons.draw(iconKey, self.titleIcon, Theme.color.white)
+	end
 end
 
 -- Section heading inside a panel body

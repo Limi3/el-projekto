@@ -12,13 +12,13 @@ function Toasts.new(parent: Instance)
 	local holder = Kit.new("Frame", {
 		Name = "Toasts",
 		BackgroundTransparency = 1,
-		AnchorPoint = Vector2.new(0.5, 0),
-		Position = UDim2.new(0.5, 0, 0, 240),
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, -96),
 		Size = UDim2.fromOffset(520, 200),
 		ZIndex = Theme.zIndex.toast,
 		Parent = parent,
 	})
-	Kit.list(Enum.FillDirection.Vertical, 6).Parent = holder
+	Kit.list(Enum.FillDirection.Vertical, 6, Enum.HorizontalAlignment.Center, Enum.VerticalAlignment.Bottom).Parent = holder
 	return setmetatable({ holder = holder, live = {} :: { { text: string, label: TextLabel, at: number } }, order = 0 }, Toasts)
 end
 

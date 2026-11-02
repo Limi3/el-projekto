@@ -74,24 +74,28 @@ function Menu.new(parent: Instance, Content: any, tooltipLayer: Instance, onOpen
 		Name = "Menu",
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 12, 0.42, 0),
+		Position = UDim2.new(0, 12, 0.6, 0),
 		Size = UDim2.fromOffset(size * 2 + gap, size * 4 + gap * 3),
 		Parent = parent,
 	})
 	self.root = root
+	-- Buttons live in their own grid frame; the More pop-up is a sibling (a child of a
+	-- UIGridLayout container would be laid out as a grid cell).
+	local grid = Kit.new("Frame", { Name = "Grid", BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Parent = root })
+	self.grid = grid
 	Kit.new("UIGridLayout", {
 		CellSize = UDim2.fromOffset(size, size),
 		CellPadding = UDim2.fromOffset(gap, gap),
 		SortOrder = Enum.SortOrder.LayoutOrder,
 		FillDirectionMaxCells = 2,
-		Parent = root,
+		Parent = grid,
 	})
 	for i, name in PRIMARY do
 		local b = tile(name, S.t("menu." .. name), function()
 			onOpen(name)
 		end, size)
 		b.LayoutOrder = i
-		b.Parent = root
+		b.Parent = grid
 		Kit.attachTooltip(b, S.t("tip." .. name), tooltipLayer)
 		self.buttons[name] = b
 	end
@@ -101,15 +105,16 @@ function Menu.new(parent: Instance, Content: any, tooltipLayer: Instance, onOpen
 		self:toggleMore()
 	end, size)
 	more.LayoutOrder = 7
-	more.Parent = root
+	more.Parent = grid
 	Kit.attachTooltip(more, S.t("tip.More"), tooltipLayer)
 	self.buttons.More = more
 
 	local pop = Kit.new("Frame", {
 		Name = "MoreMenu",
 		BackgroundColor3 = Theme.color.paper,
-		Position = UDim2.new(1, 10, 1, -(size * 2 + gap)),
-		Size = UDim2.fromOffset(210, 4 * 56 + 3 * 6 + 20),
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(1, 10, 1, 0),
+		Size = UDim2.fromOffset(210, 4 * 52 + 3 * 6 + 20),
 		Visible = false,
 		ZIndex = Theme.zIndex.menu,
 		Parent = root,
@@ -167,13 +172,16 @@ function Menu.setCompact(self: any, compact: boolean)
 	local gap = 8
 	local cols = if compact then 3 else 2
 	local rows = math.ceil(7 / cols)
-	local grid = self.root:FindFirstChildOfClass("UIGridLayout")
-	if grid then
-		grid.FillDirectionMaxCells = cols
+	local layout = self.grid:FindFirstChildOfClass("UIGridLayout")
+	if layout then
+		layout.FillDirectionMaxCells = cols
 	end
 	self.root.Size = UDim2.fromOffset(size * cols + gap * (cols - 1), size * rows + gap * (rows - 1))
-	self.root.Position = UDim2.new(0, 12, if compact then 0.36 else 0.42, 0)
-	self.more.Position = if compact then UDim2.new(1, 10, 0, 0) else UDim2.new(1, 10, 1, -(size * 2 + gap))
+	-- Desktop: centred low enough on the left edge to clear Roblox's chat window (top-left).
+	-- Phones: 3x3 higher up so it ends above the dynamic thumbstick (chat is collapsed there).
+	self.root.Position = UDim2.new(0, 12, if compact then 0.36 else 0.6, 0)
+	self.more.AnchorPoint = if compact then Vector2.new(0, 0) else Vector2.new(0, 1)
+	self.more.Position = if compact then UDim2.new(1, 10, 0, 0) else UDim2.new(1, 10, 1, 0)
 end
 
 function Menu.setVisible(self: any, visible: boolean)

@@ -97,8 +97,10 @@ DRAW.settings = function(p, c)
 end
 DRAW.journal = function(p, c)
 	rect(p, 0.5, 0.5, 0.7, 0.86, c, 0, 0.12)
-	rect(p, 0.32, 0.5, 0.06, 0.86, Color3.new(1, 1, 1), 0, 0)
-	rect(p, 0.6, 0.36, 0.3, 0.08, Color3.new(1, 1, 1), 0, 0.5)
+	-- spine + label line contrast with the cover (also when the cover itself is white)
+	local detail = if c.R + c.G + c.B > 2.7 then Color3.fromRGB(150, 120, 60) else Color3.new(1, 1, 1)
+	rect(p, 0.32, 0.5, 0.06, 0.86, detail, 0, 0)
+	rect(p, 0.6, 0.36, 0.3, 0.08, detail, 0, 0.5)
 end
 DRAW.heart = function(p, c)
 	circle(p, 0.34, 0.38, 0.42, c)
