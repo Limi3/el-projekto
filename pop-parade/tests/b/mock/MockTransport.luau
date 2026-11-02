@@ -185,10 +185,13 @@ function MockTransport._worldTick(self: any, root: BasePart)
 		end
 	end
 	-- Ribbon Run finish (B-proposed event name "ParkourFinished")
-	if scan.finish and s.mode == "parkour" and not self.parkourDone and insideBox(scan.finish.CFrame, scan.finish.Size, pos) then
+	-- fires once per visit; re-arms only after leaving the finish volume AND the parkour zone
+	local atFinish = scan.finish ~= nil and insideBox(scan.finish.CFrame, scan.finish.Size + Vector3.new(0, 4, 0), pos)
+	if atFinish and not self.parkourDone then
 		self.parkourDone = true
+		print("[PopParade TEST] mock ParkourFinished (mode=" .. tostring(s.mode) .. ")")
 		server:_pushWorld({}, { { type = "ParkourFinished", courseId = scan.finish:GetAttribute("PopParadeFinish") } })
-	elseif s.mode ~= "parkour" then
+	elseif not atFinish and s.mode ~= "parkour" then
 		self.parkourDone = false
 	end
 	-- leaving the stage/parkour resets per-run checkpoint memory
