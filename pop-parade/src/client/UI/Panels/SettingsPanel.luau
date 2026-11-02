@@ -1,6 +1,6 @@
 --!strict
 -- Settings: music + SFX volume, reduced motion/effects, screen shake, movement speed (within owned
--- limits). Values are saved through A (SetSetting / SetMoveSpeed); local effects apply instantly.
+-- limits), and graphics toggles (depth of field, bloom, sun rays, shadows). Values are saved through A (SetSetting / SetMoveSpeed); local effects apply instantly.
 
 local Kit = require(script.Parent.Parent.Kit)
 local Theme = require(script.Parent.Parent.Theme)
@@ -51,7 +51,19 @@ function SettingsPanel.new(ctx: any)
 		end)
 	end, 5)
 	speed.Parent = body
-	self.setters = { music = setMusic, sfx = setSfx, reduced = setReduced, shake = setShake, speed = setSpeed }
+	-- Graphics: each post-processing effect can be switched off (saved like the other settings)
+	Panel.section(body, S.t("settings.graphics"), 6)
+	local graphicsSetters = {}
+	for i, key in { "dof", "bloom", "sunRays", "shadows" } do
+		local row, set = Kit.toggle(S.t("settings." .. key), true, function(v)
+			send(key, v)
+		end, 6 + i)
+		row.Parent = body
+		graphicsSetters[key] = set
+	end
+	local note = Kit.label(S.t("settings.graphics_note"), { size = 14, color = Theme.color.inkSoft, order = 11, frameSize = UDim2.new(1, 0, 0, 36) })
+	note.Parent = body
+	self.setters = { music = setMusic, sfx = setSfx, reduced = setReduced, shake = setShake, speed = setSpeed, graphics = graphicsSetters }
 	return self
 end
 
@@ -68,6 +80,9 @@ function SettingsPanel.refresh(self: any, state: any)
 	end
 	self.setters.reduced(st.reducedEffects == true)
 	self.setters.shake(st.shake ~= false)
+	for key, set in self.setters.graphics do
+		set(st[key] ~= false) -- missing = default on
+	end
 	local range = self.ctx.balance and self.ctx.balance.speedRange(state)
 	if range then
 		self.setters.speed(state.selectedSpeed or range.max, range.min, range.max)
