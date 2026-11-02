@@ -2,6 +2,14 @@
 
 Back to [[POP PARADE]]
 
+## Done (2026-11-02 evening), head `e5147e2`
+- [x] One clean "server adapter" (`ServerAdapter.luau`) that every menu and controller now uses to talk to Saud's server, with a test proving it can't grant anything
+- [x] Extra jump fixed: quick double taps and holding Space no longer break it (found while playing in Studio)
+- [x] King Puffer: players can't walk under him any more; they stop in front of the glowing knot
+- [x] Phone layout: menus fit a landscape phone (tested with Studio's iPhone XR simulation)
+- [x] Puff vents verified (they lift you ~19 studs); Ribbon Run finish banner fires first time
+- [x] Checks: type-check clean · lint ok · **43 unit tests passing**
+
 ## Done (2026-11-02) — playable Studio preview, head `fc8db67`
 - [x] Preview place built and **played in Roblox Studio** (`pop-parade/build/PopParade-PreviewB.rbxlx`, open it and press Play)
 - [x] Fixed the bugs found while playing: spawn order, More menu, sound names, panel icons, prize wheel drawing, toast overlap, journal, banner position, boss leftovers after defeat
@@ -20,5 +28,5 @@ Back to [[POP PARADE]]
 
 ## Still pending — see [[TEST_RESULTS]]
 - [ ] Walk every secret and the whole route on foot (today's secret checks used teleports)
-- [ ] Phone emulator, gamepad, two clients, real purchases
+- [ ] Gamepad with a real controller, text size on a real phone, two clients, real purchases
 - [ ] Real sound files ([[ASSET_MANIFEST]]); Figma library if Figma gets connected
