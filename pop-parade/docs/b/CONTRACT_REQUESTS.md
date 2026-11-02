@@ -95,7 +95,7 @@ B uses the four contract remotes and envelopes exactly. `GameClient` connects li
 | BuyUpgrade | `{ upgradeId }` | (state update) |
 | SetMoveSpeed | `{ speed }` | (state update) |
 | EquipItem | `{ slot, itemId? }` (`itemId=nil` to unequip) | — |
-| SetSetting | `{ key = "music" \| "sfx" \| "reducedEffects" \| "shake", value }` | — |
+| SetSetting | `{ key = "music" \| "sfx" \| "reducedEffects" \| "shake" \| "dof" \| "bloom" \| "sunRays" \| "shadows", value }` (the last four are booleans, **new 2026-11-02**) | — |
 | EnterMode | `{ mode = "hub" \| "parkour" }` | — |
 | EnterStage | `{ stageId }` | — |
 | RestartRun | `{}` | — |
@@ -112,7 +112,7 @@ Idempotency: B retries `RequestSpin` with the **same requestId** after a timeout
 
 (Exact list in `Selectors.luau`; example values in `tests/b/mock/Fixtures.luau`.)
 
-`coins, xp` (progress **within** the current level), `xpNeeded` (nil or 0 = max level), `level, upgrades[Id].level, stats{damage, attacksPerSecond, moveSpeedMax, reach, targets, maxHearts}, selectedSpeed, mode ("hub" | "stage" | "parkour" | "afk"), currentStageId, stageProgress{stageId, done, total}, completedStages[], skippedStages[], isLastAvailableStage, equipped{slot→id}, owned{id→true}, consumables{id→count}, accessoryBonuses{id→display text}, daily{claimIndex, canClaim, nextResetAt, activeSeconds, milestones{speed,attack,needle}, tickets{t15,t30}}, secrets{found[], total, buffs{speed,attack,needle}}, spinTickets, spinsCompleted, founderSpinsRequired, pendingSpin{spinId,...}, wheel{table[{itemId,rarity,probability}], duplicateCoins{rarity→coins}}, boost{remainingSeconds, paused, capSeconds}, shop{rotationId, refreshAt, featured[offerId], collection[offerId]}, offers{offerId→{itemId, kind="pass" | "product", available, permanent, owned?, productId?}}, settings{music, sfx, reducedEffects, shake}, run{hearts, maxHearts, checkpointId, stunned?, boss{id,hp,maxHp,phase}}`.
+`coins, xp` (progress **within** the current level), `xpNeeded` (nil or 0 = max level), `level, upgrades[Id].level, stats{damage, attacksPerSecond, moveSpeedMax, reach, targets, maxHearts}, selectedSpeed, mode ("hub" | "stage" | "parkour" | "afk"), currentStageId, stageProgress{stageId, done, total}, completedStages[], skippedStages[], isLastAvailableStage, equipped{slot→id}, owned{id→true}, consumables{id→count}, accessoryBonuses{id→display text}, daily{claimIndex, canClaim, nextResetAt, activeSeconds, milestones{speed,attack,needle}, tickets{t15,t30}}, secrets{found[], total, buffs{speed,attack,needle}}, spinTickets, spinsCompleted, founderSpinsRequired, pendingSpin{spinId,...}, wheel{table[{itemId,rarity,probability}], duplicateCoins{rarity→coins}}, boost{remainingSeconds, paused, capSeconds}, shop{rotationId, refreshAt, featured[offerId], collection[offerId]}, offers{offerId→{itemId, kind="pass" | "product", available, permanent, owned?, productId?}}, settings{music, sfx, reducedEffects, shake, dof?, bloom?, sunRays?, shadows?} (graphics keys: missing = on), run{hearts, maxHearts, checkpointId, stunned?, boss{id,hp,maxHp,phase}}`.
 
 Notes:
 - `offers[].productId` is the pass/product ID A authorises **for price display**. B fetches the live price with `MarketplaceService:GetProductInfoAsync`. With no ID, the card shows "Price unavailable" and the Buy button stays disabled.
@@ -151,3 +151,9 @@ Unknown IDs render with a neutral placeholder, never an error.
 ## 8. Things B deliberately did NOT do (A's side)
 
 No DataStores, no receipts, no reward grants, no combat loop, no hazard/boss damage, no checkpoint validation, no secret granting, no product creation, no balance values. The test-only mock in `tests/b/mock` imitates contract shapes so screens can be exercised. It is never in a production build, and the client shows a permanent TEST PREVIEW banner while it runs.
+
+## Graphics settings (new request, 2026-11-02)
+
+B added four per-player graphics toggles (Settings → Graphics): `dof`, `bloom`, `sunRays`, `shadows`. They are purely visual and applied on the client the moment the player taps them. **Request:** accept them in `SetSetting` (booleans) and return them in `state.settings`. Until A supports them, the client still applies them locally for the session, but the server will answer `INVALID_REQUEST` and the player sees an error toast. If A prefers not to store them, tell B and B will keep them client-only and stop sending them.
+
+**Place setting (owner, in Studio):** set `Lighting.Technology = Future` in the real place. B's preview place does this through `preview-b.project.json`; scripts can't change it at runtime. The lighting values in `HubBuilder.applyLighting` are tuned for Future.

@@ -1,5 +1,13 @@
 # B progress log
 
+## 2026-11-02 (late evening): graphics pass
+
+- [x] Client post-processing: depth of field that follows your character, glow on neon parts, sun rays, clouds, menu blur; Future lighting in the preview place; richer colour grading.
+- [x] Settings → Graphics: Depth of field / Glow / Sun rays / Shadows switches (saved through A as settings; applied instantly). Reduced motion turns off DoF and sun rays.
+- [x] Tuned and verified in Studio (first values washed the world out; fixed).
+- [ ] A: accept the four new setting keys. Owner: set Lighting.Technology = Future in the real place.
+
+
 ## 2026-11-02 (evening): adapter + Studio fixes
 
 **Done**

@@ -60,7 +60,7 @@ Bootstrap.client.luau ─ picks transport (RemoteTransport in production; MockTr
        RemoteTransport four RemoteEvents under ReplicatedStorage.PopParade.Remotes
        signals: StateChanged(state, prev) · WorldEvent(ev) · BalloonState · WorldSnapshot · StatusChanged · LateResult · SchemaMismatch
   └ App.luau  builds HUD, menu, panels, controllers; ctx = { client, Content, S, Actions, balance, toast, banner, openPanel, ... }
-       Controllers: BalloonRenderer, EffectsController, DamageNumbers, AudioController, CosmeticsController,
+       Controllers: GraphicsController (new: DoF, bloom, sun rays, clouds, menu blur, shadows toggles), BalloonRenderer, EffectsController, DamageNumbers, AudioController, CosmeticsController,
                     PurchaseController, BossPresenter, ExtraJumpInput, WorldHints, WorldFeedback (new)
        UI: Hud, Menu, Toasts, Banner (new), Panel + 9 panels, ItemCard, Kit/Theme/Icons
        State: Selectors (pure reads of ClientState), Onboarding

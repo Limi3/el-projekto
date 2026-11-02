@@ -60,3 +60,20 @@ Each is a data entry in `Themes.luau` with `status = "design"`. None is enabled 
 | Halloween | confection | friendly pumpkins and ghost balloons, no gore; placed by config, not calendar | `boss.pumpkin_puff` |
 
 **Next build order (after the first slice integrates):** Wood stage 001, then Candy stage 001. Each gets a layout module like `RubberStage001`, is registered in `WorldBuilder.stageLayouts`, passes `LayoutValidator`, and is marked `playable` only after a Studio playtest.
+
+## Post-processing (client, toggleable)
+
+The "toy parade" look comes from a few light touches on top of the pastel palette. All of them are client-only, live in `GraphicsController.luau`, and can be switched off in Settings → Graphics:
+
+| Effect | Values | Why |
+|---|---|---|
+| Depth of field | focus follows the character (smoothed), in-focus radius 38, far 0.22, near 0.05 | tilt-shift miniature feel; distant rides soften so the play space reads first |
+| Menu blur | Blur 12 while a panel is open (tied to the DoF toggle) | keeps panels readable over a busy world |
+| Bloom | intensity 0.45, size 24, threshold 2.4 (1.4 washed pale floors to white in Studio) | only neon/bright parts glow (golden secrets, knots, ribbons); pastels stay crisp |
+| Sun rays | intensity 0.025, spread 0.55 | soft shafts toward the sun, never washes out UI |
+| Clouds | cover 0.5, density 0.45, warm white | fills the sky without a texture asset |
+| Shadows | `Lighting.GlobalShadows` | off is a big speed-up on weak phones |
+| Atmosphere (server) | density 0.26, offset 0.15, haze 1.4 | distance haze for depth |
+| Colour (server) | exposure −0.15, saturation 0.22, contrast 0.12 | richer pastels under Future lighting |
+
+Reduced motion & effects forces DoF, menu blur and sun rays off.

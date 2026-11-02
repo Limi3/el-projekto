@@ -55,6 +55,18 @@ Place built from `preview-b.project.json` with `tests/b/tools/build_place.py` (R
 | Gamepad (Studio Controller Emulator) | **Not completed.** The emulator opened, but its key mapping couldn't be read reliably from here. Still pending (real controller preferred) |
 | Tooling | Found that re-sending a file to the PC under the same path could deliver the previous copy. `tests/b/tools/stage_for_device.sh` stages under a unique name, and each build was checked by md5 on the PC before testing |
 
+### Graphics session (2026-11-02, late evening)
+
+| Check | Result (observed) |
+|---|---|
+| Effects created on the client (DoF, bloom, sun rays, menu blur, clouds) with Future lighting in the preview place | **Pass** (checked from the command bar: all present, correct enabled state) |
+| First-pass look | **Bug found and fixed.** Bloom threshold 1.4 plus strong DoF washed the pale floors and sky out to white. Tuned live in Studio, compared with all effects off, and baked in: bloom threshold 2.4, DoF far 0.22 / radius 38, sun rays 0.025, exposure −0.15, saturation 0.22, contrast 0.12 |
+| Settings → Graphics toggles | **Pass:** turning Depth of field and Shadows off immediately disabled the DoF effect, the menu blur and `GlobalShadows`; bloom and sun rays stayed on; turning them back on restored them. The mock server stored the new keys (no error toast) |
+| Menu blur | **Pass:** world blurs behind an open panel and clears when it closes |
+| Keyboard Escape | Opens Roblox's own menu, not ours (Roblox reserves Escape); panels close with their X button or gamepad B. Not a bug, noted for players |
+| Real server support for the four new settings | **Pending:** A must accept `dof`, `bloom`, `sunRays`, `shadows` in `SetSetting` (`CONTRACT_REQUESTS.md`) |
+| Phone performance with effects on | **Pending:** needs a real phone |
+
 ## PENDING: needs Roblox Studio / devices / A's systems
 
 | Check | Why pending | How to run |
