@@ -2,6 +2,12 @@
 
 Back to [[POP PARADE]]
 
+## Done (2026-11-02 late evening): graphics, head `431bea8`
+- [x] New look: depth of field that follows your character, soft glow on neon parts, sun rays, clouds, menu blur, Future lighting, richer colours
+- [x] Settings → Graphics: switches for Depth of field, Glow, Sun rays and Shadows (Reduced motion also turns off DoF + sun rays)
+- [x] Tested in Studio: first version washed everything out white → tuned until crisp; all four switches work
+- [ ] Saud: accept the four new settings on the server · Owner: set Lighting → Technology = Future in the real place
+
 ## Done (2026-11-02 evening), head `e5147e2`
 - [x] One clean "server adapter" (`ServerAdapter.luau`) that every menu and controller now uses to talk to Saud's server, with a test proving it can't grant anything
 - [x] Extra jump fixed: quick double taps and holding Space no longer break it (found while playing in Studio)
