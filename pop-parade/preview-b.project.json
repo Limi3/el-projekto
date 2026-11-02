@@ -35,6 +35,14 @@
         }
       }
     },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Technology": {
+          "Enum": 4
+        }
+      }
+    },
     "Workspace": {
       "$className": "Workspace"
     }
