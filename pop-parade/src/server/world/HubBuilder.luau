@@ -239,22 +239,24 @@ function HubBuilder.applyLighting(Content: any, lighting: Lighting)
 	lighting.Brightness = 2.4
 	lighting.ClockTime = 14.5
 	lighting.GeographicLatitude = 30
-	lighting.EnvironmentDiffuseScale = 0.6
-	lighting.EnvironmentSpecularScale = 0.4
+	lighting.EnvironmentDiffuseScale = 1 -- tuned for Future lighting (set in the place file)
+	lighting.EnvironmentSpecularScale = 0.6
+	lighting.ExposureCompensation = -0.15
 	lighting.OutdoorAmbient = Color3.fromRGB(170, 160, 190)
 	lighting.Ambient = Color3.fromRGB(110, 100, 130)
-	lighting.ShadowSoftness = 0.35
+	lighting.ShadowSoftness = 0.25
 	local atmosphere = lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere")
-	atmosphere.Density = 0.22
-	atmosphere.Haze = 1.2
+	atmosphere.Density = 0.26 -- distant landmarks fade into pastel haze (depth)
+	atmosphere.Offset = 0.15
+	atmosphere.Haze = 1.4
 	atmosphere.Glare = 0.2
 	atmosphere.Color = Geometry.toColor3(theme.sky.horizon)
 	atmosphere.Decay = Geometry.toColor3(theme.sky.top)
 	atmosphere.Parent = lighting
 	local cc = lighting:FindFirstChild("PopParadeColor") :: ColorCorrectionEffect? or Instance.new("ColorCorrectionEffect")
 	cc.Name = "PopParadeColor"
-	cc.Saturation = 0.12
-	cc.Contrast = 0.05
+	cc.Saturation = 0.22 -- tuned in Studio with the client post-processing on
+	cc.Contrast = 0.12
 	cc.Parent = lighting
 end
 
