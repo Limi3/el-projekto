@@ -2,7 +2,9 @@
 -- TEST-ONLY Studio transport: MockServer + a small local simulation so the preview is playable
 -- before A's systems exist. Only loaded by Bootstrap when running in Studio with tests/b mapped.
 -- Simulates: auto-attack against the nearest balloon in front, zone changes (hub/stage/parkour),
--- balloon respawns, and King Puffer telegraphs. None of it is authoritative, saved or real.
+-- balloon respawns, King Puffer telegraphs, checkpoint arrival, hazard heart loss + respawn,
+-- golden-secret discovery and the Ribbon Run finish. None of it is authoritative, saved or real:
+-- in production A detects all of these on the server (see docs/b/HANDOFF.md, "Missing server ops").
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -81,7 +83,119 @@ function MockTransport.connect(self: any, handlers: any)
 			self:_bossAttack(pos)
 		end
 		self:_bossTick(pos, stage)
+		self:_worldTick(root)
 	end)
+end
+
+-- TEST-ONLY: secret model name -> secret id / buff stat (A owns the real registry server-side)
+local MOCK_SECRETS = {
+	FizzyFalls = { id = "secret.rubber.waterfall", stat = "speed" },
+	BigTop = { id = "secret.hub.big_top", stat = "attack" },
+	BridgeNook = { id = "secret.rubber.underbridge", stat = "needle" },
+}
+
+function MockTransport._scanWorld(self: any)
+	if self.scan then
+		return self.scan
+	end
+	local world = workspace:FindFirstChild("PopParadeWorld")
+	if not world then
+		return nil
+	end
+	local scan = { checkpoints = {}, hazards = {}, secrets = {}, finish = nil :: BasePart? }
+	for _, d in world:GetDescendants() do
+		if d:IsA("BasePart") and d:GetAttribute("PopParadeCheckpoint") then
+			table.insert(scan.checkpoints, d)
+		elseif d:IsA("BasePart") and d:GetAttribute("PopParadeFinish") then
+			scan.finish = d
+		elseif d:IsA("Model") and d:GetAttribute("PopParadeHazard") then
+			-- live parts: the preview's test-only hazard script moves sweeper arms
+			local key = d:GetAttribute("BehaviorKey")
+			local part = if key == "tack_mat" then d:FindFirstChild("Plate") elseif key == "sweeper" then d:FindFirstChild("Arm") else nil
+			if part and part:IsA("BasePart") then
+				table.insert(scan.hazards, part)
+			end
+		elseif d:IsA("Model") and d.Name == "Ornament" and d.Parent and MOCK_SECRETS[d.Parent.Name] then
+			table.insert(scan.secrets, { pos = d:GetPivot().Position, info = MOCK_SECRETS[d.Parent.Name] })
+		end
+	end
+	self.scan = scan
+	return scan
+end
+
+local function insideBox(cf: CFrame, size: Vector3, p: Vector3): boolean
+	local l = cf:PointToObjectSpace(p)
+	return math.abs(l.X) <= size.X / 2 and math.abs(l.Y) <= size.Y / 2 and math.abs(l.Z) <= size.Z / 2
+end
+
+function MockTransport._worldTick(self: any, root: BasePart)
+	local scan = self:_scanWorld()
+	if not scan then
+		return
+	end
+	local server = self.server
+	local s = server.state
+	local pos = root.Position
+	self.reachedCps = self.reachedCps or {}
+	-- checkpoints: first entry per run sends a Checkpoint event and moves the respawn point
+	for _, vol in scan.checkpoints do
+		local id = vol:GetAttribute("PopParadeCheckpoint") :: string
+		if not self.reachedCps[id] and insideBox(vol.CFrame, vol.Size + Vector3.new(0, 6, 0), pos) then
+			self.reachedCps[id] = vol
+			if s.run then
+				s.run.checkpointId = id
+			end
+			self.respawnAt = vol.Position
+			server:_pushState()
+			server:_pushWorld({}, { { type = "Checkpoint", checkpointId = id } })
+		end
+	end
+	-- hazards: tack mats and sweeper arms cost one heart, 1.5 s invulnerability, respawn at 0
+	local run = s.run
+	if run and (run.hearts or 0) > 0 and os.clock() >= (self.invulnUntil or 0) then
+		for _, h in scan.hazards do
+			-- volume reaches up from the hazard so a character standing on it (root ~3 studs up) counts
+			if insideBox(h.CFrame * CFrame.new(0, 2.5, 0), h.Size + Vector3.new(1.5, 6, 1.5), pos) then
+				self.invulnUntil = os.clock() + 1.5
+				run.hearts -= 1
+				server:_pushState()
+				if run.hearts <= 0 then
+					task.delay(2, function()
+						run.hearts = run.maxHearts
+						self.invulnUntil = os.clock() + 2
+						local char = self.player.Character
+						if char and self.respawnAt then
+							char:PivotTo(CFrame.new(self.respawnAt + Vector3.new(0, 3, 0)))
+						end
+						server:_pushState()
+					end)
+				end
+				break
+			end
+		end
+	end
+	-- golden secrets: proximity to the hidden ornament (A uses server-side trigger radii)
+	s.secrets = s.secrets or { found = {}, total = 3, buffs = { speed = 0, attack = 0, needle = 0 } }
+	for _, sec in scan.secrets do
+		if (sec.pos - pos).Magnitude < 7 and not table.find(s.secrets.found, sec.info.id) then
+			table.insert(s.secrets.found, sec.info.id)
+			s.secrets.buffs[sec.info.stat] = (s.secrets.buffs[sec.info.stat] or 0) + 1
+			server:_pushState()
+			server:_pushWorld({}, { { type = "SecretFound", secretId = sec.info.id, stat = sec.info.stat } })
+		end
+	end
+	-- Ribbon Run finish (B-proposed event name "ParkourFinished")
+	if scan.finish and s.mode == "parkour" and not self.parkourDone and insideBox(scan.finish.CFrame, scan.finish.Size, pos) then
+		self.parkourDone = true
+		server:_pushWorld({}, { { type = "ParkourFinished", courseId = scan.finish:GetAttribute("PopParadeFinish") } })
+	elseif s.mode ~= "parkour" then
+		self.parkourDone = false
+	end
+	-- leaving the stage/parkour resets per-run checkpoint memory
+	if s.mode == "hub" and next(self.reachedCps) then
+		self.reachedCps = {}
+		self.respawnAt = nil
+	end
 end
 
 -- Tiny King Puffer loop: windup -> pulse -> knot (vulnerable) -> repeat. Mock timings only.
