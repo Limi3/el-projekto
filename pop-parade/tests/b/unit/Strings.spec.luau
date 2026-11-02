@@ -24,6 +24,9 @@ return {
 			for _, n in { "speed", "attack", "needle" } do
 				t.ok(Strings.has("stat." .. n), "stat." .. n)
 			end
+			for _, n in { "dof", "bloom", "sunRays", "shadows", "graphics", "graphics_note" } do
+				t.ok(Strings.has("settings." .. n), "settings." .. n)
+			end
 			for _, n in { "section.1", "section.2", "section.3", "section.4", "section.5", "section.boss" } do
 				t.ok(Strings.has("stage." .. n), "stage." .. n)
 			end
