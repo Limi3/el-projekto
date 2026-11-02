@@ -26,7 +26,8 @@ function Panel.new(layer: Instance, opts: { name: string, title: string, icon: s
 		Name = opts.name,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.52),
-		Size = UDim2.new(0, opts.width or 560, 0, opts.height or 520),
+		-- height follows the screen on short (landscape phone) displays, capped at the design height
+		Size = UDim2.new(0, opts.width or 560, 0.84, 0),
 		BackgroundColor3 = Theme.color.paper,
 		Visible = false,
 		ZIndex = Theme.zIndex.panel,
