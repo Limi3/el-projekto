@@ -1,5 +1,20 @@
 # B progress log
 
+## 2026-11-02 (evening): adapter + Studio fixes
+
+**Done**
+- [x] `ServerAdapter` (explicit methods per action) and every panel/controller moved onto it; unit test added (43 passing).
+- [x] Extra jump fixed: quick double taps and held keys (found in Studio).
+- [x] King Puffer: invisible pedestal so players can't walk under the body (found in Studio).
+- [x] Phone layout: panels fit landscape phones (Device Simulation, iPhone XR).
+- [x] Test-only Ribbon Run finish now fires on the first pass.
+- [x] Verified vents push players in the preview.
+
+**Next**
+- [ ] Gamepad pass with a real controller; real-phone readability.
+- [ ] Walk the Kite Line shortcut and all three secrets on foot.
+
+
 ## 2026-11-02: playable preview in Roblox Studio
 
 **Done**

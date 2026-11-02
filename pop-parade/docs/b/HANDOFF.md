@@ -67,7 +67,9 @@ Bootstrap.client.luau ─ picks transport (RemoteTransport in production; MockTr
 ```
 
 ### Adapter interface (what UI code may call)
-`client:request(action, payload, cb(result))` with `Actions.*` builders — `getState, getWorldSnapshot, buyUpgrade(id), setMoveSpeed(n), equipItem(slot, id?), setSetting(k, v), enterMode(m), enterStage(id), restartRun(), claimDaily(), requestSpin(), consumeItem(id), useSkipToken(stageId), requestPurchase(offerId), requestExtraJump(t, pos)`. Results are `{ ok, code?, data? }`; UI shows pending/disabled while a request is in flight and an error toast on failure. Nothing in the UI mutates state locally.
+`ctx.server` = `src/client/GameClient/ServerAdapter.luau`, the only way UI talks to A. One method per action, each returns its request ID and calls back once with `{ ok, code?, data? }`:
+`requestState(), requestWorldSnapshot(), buyUpgrade(id, cb), setMoveSpeed(n, cb), equipItem(slot, id?, cb), consumeItem(id, cb), setSetting(key, value, cb), enterMode(mode, cb), enterStage(stageId, cb), restartRun(cb), useSkipToken(stageId, cb), requestExtraJump(pos?, cb), claimDaily(cb), requestSpin(cb, retryId?), requestPurchase(offerId, cb)`, plus read-only `onState(fn)`, `onWorldEvent(fn)`, `state()`.
+Payload shapes live only in `Actions.luau`. The UI shows pending/disabled while a request is in flight and an error toast on failure; nothing in the UI mutates state locally. Unit-tested: no grant/detection methods exist, payloads never carry balances, spin retries are idempotent.
 
 **Conflict with the brief, resolved on the safe side:** the brief lists client calls like "hit balloon", "discover secret", "reach checkpoint". B deliberately has **no** client ops for these. Balloon hits, damage, checkpoints, secret discovery and boss damage are **server-detected by A** (position/volume checks); the client only renders A's events. This keeps clients from claiming rewards or damage.
 
@@ -92,7 +94,8 @@ Payloads and `ClientState` fields: `CONTRACT_REQUESTS.md §3–§5`.
 6. Everything in `CONTRACT_REQUESTS.md` (balance accessor, offers with product IDs, daily, wheel, skip token).
 
 ### Temporary development code (never in `default.project.json`)
-`tests/b/mock/*` (MockServer, MockTransport incl. mock checkpoints/hazard hearts/secret proximity/parkour finish, Fixtures), `tests/b/preview/PreviewServer.server.luau` (test world build + spawn), `tests/b/preview/PreviewHazards.server.luau` (test-only hazard motion), `tests/b/tools/build_place.py` (builds a .rbxlx when Rojo isn't installed). All are labelled TEST-ONLY and the preview shows a permanent TEST PREVIEW banner.
+`tests/b/mock/*` (MockServer, MockTransport incl. mock checkpoints/hazard hearts/secret proximity/parkour finish, Fixtures), `tests/b/preview/PreviewServer.server.luau` (test world build + spawn), `tests/b/preview/PreviewHazards.server.luau` (test-only hazard motion), `tests/b/tools/build_place.py` (builds a .rbxlx when Rojo isn't installed), `tests/b/tools/stage_for_device.sh` (unique-name staging for the PC copy).
+Studio-only QA breadcrumb in production code: `ExtraJumpInput` sets the LocalPlayer attribute `PopParadeExtraJumpGate` (why the last mid-air press did or didn't fire) **only when `RunService:IsStudio()`**. All are labelled TEST-ONLY and the preview shows a permanent TEST PREVIEW banner.
 
 ### Integration steps (updated)
 1. Map paths per §1; keep `tests/b/**` out of `default.project.json`.
