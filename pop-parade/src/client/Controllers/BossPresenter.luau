@@ -180,13 +180,24 @@ function BossPresenter._state(self: any, ev: any)
 		local pos = self.body.Position
 		self.ctx.effects:celebrate(pos, true)
 		self.ctx.audio:play("sfx.boss_defeat", pos)
-		self.ctx.toast(self.ctx.S.t("boss.defeated"), "gold", 4)
+		-- the VICTORY banner is shown by WorldFeedback
 		local tw = TweenService:Create(self.mesh, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Scale = Vector3.new(0.05, 0.05, 0.05) })
 		tw:Play()
+		-- eyes, crown and knot pop away with the body
+		for _, part in (self.model :: Model):GetChildren() do
+			if part:IsA("BasePart") and part ~= self.body then
+				TweenService:Create(part, TweenInfo.new(0.3), { Transparency = 1 }):Play()
+			end
+		end
 	elseif ev.phase ~= "defeated" and self.defeated then
 		-- replay / new attempt: restore the boss
 		self.defeated = false
 		self.mesh.Scale = Vector3.new(1, 1.08, 1)
+		for _, part in (self.model :: Model):GetChildren() do
+			if part:IsA("BasePart") then
+				part.Transparency = 0
+			end
+		end
 	end
 end
 
