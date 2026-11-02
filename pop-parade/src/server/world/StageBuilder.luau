@@ -16,6 +16,10 @@ export type BuiltStage = {
 }
 
 local LANE_STEPS = { 30, 330, 640, 820 } -- palette steps for lane:1..4 (coral, lime, sky, violet)
+-- Each section shifts the lane hues so the five sections read as distinct places.
+local SECTION_SHIFT = { [0] = 0, 0, 110, 230, 390, 540, 0 }
+-- Section names shown on the checkpoint arch at each section's start (order 6 = boss gate).
+local SECTION_NAME_KEYS = { "stage.section.1", "stage.section.2", "stage.section.3", "stage.section.4", "stage.section.5", "stage.section.boss" }
 
 function StageBuilder.build(Content: any, layout: any, parent: Instance): BuiltStage
 	local Palette = Content.Palette
@@ -23,7 +27,7 @@ function StageBuilder.build(Content: any, layout: any, parent: Instance): BuiltS
 	local Strings = Content.Strings
 	local theme = Themes.get(layout.theme)
 	local white = { r = 1, g = 1, b = 1 }
-	local function surfaceColor(key: string): any
+	local function surfaceColor(key: string, section: number?): any
 		if key == "floor" then
 			return theme.floor
 		elseif key == "trim" then
@@ -33,7 +37,8 @@ function StageBuilder.build(Content: any, layout: any, parent: Instance): BuiltS
 		end
 		local n = tonumber(string.match(key, "^lane:(%d+)$") or "")
 		if n then
-			return Palette.mix(Palette.color(LANE_STEPS[((n - 1) % #LANE_STEPS) + 1] + theme.paletteOffset), white, 0.35)
+			local shift = SECTION_SHIFT[section or 0] or 0
+			return Palette.mix(Palette.color(LANE_STEPS[((n - 1) % #LANE_STEPS) + 1] + theme.paletteOffset + shift), white, 0.35)
 		end
 		return theme.floor
 	end
@@ -49,7 +54,7 @@ function StageBuilder.build(Content: any, layout: any, parent: Instance): BuiltS
 	for _, p in layout.platforms do
 		local cf = Geometry.cf(p.placement.pos, p.placement.yaw, p.pitch)
 		local size = Geometry.v3(p.size)
-		local part = Geometry.part(floors, p.id, size, cf, surfaceColor(p.color), { material = theme.surfaceMaterial })
+		local part = Geometry.part(floors, p.id, size, cf, surfaceColor(p.color, p.sectionIndex), { material = theme.surfaceMaterial })
 		Geometry.tag(part, { PopParadeSurface = p.kind })
 		-- Readable lane edges: thin trim bumpers (non-colliding) along lane/bridge sides
 		if p.kind == "floor" and string.sub(p.color, 1, 5) == "lane:" then
@@ -107,6 +112,14 @@ function StageBuilder.build(Content: any, layout: any, parent: Instance): BuiltS
 		end
 		local banner = Geometry.part(decor, cp.id .. ".banner", Vector3.new(half * 2, 1.4, 0.3), CFrame.new(pos.X, floorTop + 8, pos.Z), theme.trim, { canCollide = false })
 		Geometry.tag(banner, { PopParadeCheckpointBanner = cp.id })
+		-- Landmark: section name + number above the arch, readable from the previous section
+		local nameKey = SECTION_NAME_KEYS[cp.order]
+		if nameKey then
+			local signColor = if cp.order <= 5 then Palette.mix(Palette.color(LANE_STEPS[1] + theme.paletteOffset + (SECTION_SHIFT[cp.order] or 0)), white, 0.1) else theme.trim
+			Geometry.sign(decor, cp.id .. ".name", CFrame.new(pos.X, floorTop + 10.6, pos.Z) * CFrame.Angles(0, math.rad(180), 0), Vector2.new(half * 1.6, 2.8), Strings.t(nameKey), white, signColor)
+			-- back face so it also reads when walking back to a missed balloon
+			Geometry.sign(decor, cp.id .. ".nameBack", CFrame.new(pos.X, floorTop + 10.6, pos.Z - 0.35), Vector2.new(half * 1.6, 2.8), Strings.t(nameKey), white, signColor)
+		end
 	end
 
 	-- Hazards: geometry + attributes only; A animates/evaluates them by ID.

@@ -346,8 +346,9 @@ function WorldBuilder.Build(parent: Instance, options: BuildOptions): WorldManif
 	end
 
 	if manifest.testMode then
+		-- Behind and above spawn (players face north toward the balloons), so it never blocks play.
 		local sp = hubLayout.spawn.pos
-		Geometry.sign(root, "TestBuildSign", CFrame.new(sp.x, 9, sp.z + 6) * CFrame.Angles(0, math.rad(180), 0), Vector2.new(14, 2.2), Content.Strings.t("hud.preview_banner"), { r = 1, g = 0.95, b = 0.6 }, { r = 0.6, g = 0.2, b = 0.1 })
+		Geometry.sign(root, "TestBuildSign", CFrame.new(sp.x, 14, sp.z + 16), Vector2.new(16, 2.4), Content.Strings.t("hud.preview_banner"), { r = 1, g = 0.95, b = 0.6 }, { r = 0.6, g = 0.2, b = 0.1 })
 	end
 
 	-- Final ID uniqueness across the whole manifest
