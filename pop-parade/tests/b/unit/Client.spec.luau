@@ -2,6 +2,7 @@ local Env = require(script.Parent.Env)
 local root = script.Parent.Parent -- TestsB
 local Protocol = require(Env.Client.GameClient.Protocol)
 local GameClient = require(Env.Client.GameClient)
+local ServerAdapter = require(Env.Client.GameClient.ServerAdapter)
 local Selectors = require(Env.Client.State.Selectors)
 local Format = require(Env.Client.Util.Format)
 local Pool = require(Env.Client.Util.Pool)
@@ -162,6 +163,43 @@ return {
 			t.eq(server.state.spinTickets, ticketsAfter, "no second ticket spent")
 			t.eq(again.data.spinId, id)
 			t.ok(held ~= nil, "original request reached the server")
+		end,
+		["server adapter sends intents only and keeps spin retries idempotent"] = function(t)
+			local client, server, transport = setup("wealthyPlayer")
+			transport.available = true
+			client:start()
+			local adapter = ServerAdapter.new(client)
+			-- no client-side grant/detection operations exist on the adapter
+			for _, forbidden in { "hitBalloon", "reachCheckpoint", "discoverSecret", "damageBoss", "grantReward", "setCoins" } do
+				t.eq((adapter :: any)[forbidden], nil, forbidden)
+			end
+			local coinsBefore = client.state.coins
+			local seen = {}
+			local origReceive = server.receive
+			server.receive = function(self, env)
+				table.insert(seen, env)
+				origReceive(self, env)
+			end
+			local r = nil
+			adapter:buyUpgrade("Needle", function(x)
+				r = x
+			end)
+			t.ok(r ~= nil, "callback ran")
+			t.eq(seen[1].action, "BuyUpgrade")
+			t.eq(seen[1].payload.upgradeId, "Needle")
+			t.eq(seen[1].payload.coins, nil, "client never sends a balance")
+			t.ok(r and r.ok, "upgrade accepted by the mock")
+			t.ok(client.state.coins < coinsBefore, "coins come down only via the server's state update")
+			local first = nil
+			local id = adapter:requestSpin(function(x)
+				first = x
+			end)
+			local again = nil
+			adapter:requestSpin(function(x)
+				again = x
+			end, id)
+			t.ok(first and first.ok, "spin accepted")
+			t.eq(again and again.data and again.data.spinId, first.data.spinId, "same stored outcome on retry")
 		end,
 		["unavailable server never produces fake state"] = function(t)
 			local client, server, transport = setup()
