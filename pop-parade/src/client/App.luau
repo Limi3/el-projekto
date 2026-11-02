@@ -13,6 +13,7 @@ local Theme = require(script.Parent.UI.Theme)
 local Hud = require(script.Parent.UI.Hud)
 local Menu = require(script.Parent.UI.Menu)
 local Toasts = require(script.Parent.UI.Toasts)
+local Banner = require(script.Parent.UI.Banner)
 local Actions = require(script.Parent.GameClient.Actions)
 local Format = require(script.Parent.Util.Format)
 local Maid = require(script.Parent.Util.Maid)
@@ -46,6 +47,7 @@ function App.new(client: any, Content: any, opts: { balance: any?, preview: bool
 
 	self.hud = Hud.new(gui, Content, opts.preview)
 	self.toasts = Toasts.new(gui)
+	self.banner = Banner.new(gui)
 
 	-- shared context handed to every panel/controller
 	local ctx: any = {
@@ -59,6 +61,9 @@ function App.new(client: any, Content: any, opts: { balance: any?, preview: bool
 	}
 	function ctx.toast(text: string, kind: string?, seconds: number?)
 		self.toasts:show(text, kind, seconds)
+	end
+	function ctx.banner(title: string, subtitle: string?, kind: string?, seconds: number?)
+		self.banner:show(title, subtitle, kind, seconds)
 	end
 	function ctx.toastError(code: string?)
 		local key = "err." .. tostring(code or "UNKNOWN")
@@ -85,7 +90,8 @@ function App.new(client: any, Content: any, opts: { balance: any?, preview: bool
 	self.boss = require(Controllers.BossPresenter).new(ctx)
 	self.jump = require(Controllers.ExtraJumpInput).new(ctx)
 	self.hints = require(Controllers.WorldHints).new(ctx)
-	for _, c in { ctx.effects, ctx.audio, ctx.cosmetics, self.renderer, self.boss, self.jump, self.hints } do
+	self.feedback = require(Controllers.WorldFeedback).new(ctx)
+	for _, c in { ctx.effects, ctx.audio, ctx.cosmetics, self.renderer, self.boss, self.jump, self.hints, self.feedback } do
 		self.maid:give(c)
 	end
 
