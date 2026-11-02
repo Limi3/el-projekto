@@ -14,7 +14,7 @@ local Hud = require(script.Parent.UI.Hud)
 local Menu = require(script.Parent.UI.Menu)
 local Toasts = require(script.Parent.UI.Toasts)
 local Banner = require(script.Parent.UI.Banner)
-local Actions = require(script.Parent.GameClient.Actions)
+local ServerAdapter = require(script.Parent.GameClient.ServerAdapter)
 local Format = require(script.Parent.Util.Format)
 local Maid = require(script.Parent.Util.Maid)
 local Onboarding = require(script.Parent.State.Onboarding)
@@ -54,7 +54,7 @@ function App.new(client: any, Content: any, opts: { balance: any?, preview: bool
 		client = client,
 		Content = Content,
 		S = S,
-		Actions = Actions,
+		server = ServerAdapter.new(client), -- the only way UI talks to A
 		Format = Format,
 		balance = opts.balance,
 		layer = layer,
