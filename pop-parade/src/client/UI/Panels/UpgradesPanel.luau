@@ -95,7 +95,7 @@ end
 function UpgradesPanel.openFocused(self: any, focus: string)
 	self.focus = if GROUPS[focus] then focus else "Needle"
 	local S = self.ctx.S
-	self.panel:setTitle(S.t("menu." .. self.focus))
+	self.panel:setTitle(S.t("menu." .. self.focus), self.focus)
 	self.panel.header.BackgroundColor3 = Theme.upgrade[self.focus]
 	for _, child in self.panel.header:GetChildren() do
 		if child:IsA("Frame") and child.BackgroundTransparency == 0 then

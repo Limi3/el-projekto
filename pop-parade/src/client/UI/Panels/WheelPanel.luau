@@ -75,19 +75,22 @@ function WheelPanel._draw(self: any, segs: { any })
 		local stop = seg.start + seg.sweep
 		while a < stop - 1e-9 do
 			local w = math.min(1, stop - a) -- final partial degree keeps exact proportion
+			-- Roblox rotates a GuiObject about its own centre, so each spoke sits in a full-size
+			-- transparent holder that is rotated about the wheel centre.
+			local holder = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Rotation = a + w / 2, Parent = self.wheel })
 			Kit.new("Frame", {
 				BorderSizePixel = 0,
 				BackgroundColor3 = color,
 				AnchorPoint = Vector2.new(0.5, 1),
 				Position = UDim2.fromScale(0.5, 0.5),
 				Size = UDim2.new(0, math.max(0.5, rimArc * w * 1.6), 0.5, 0),
-				Rotation = a + w / 2,
-				Parent = self.wheel,
+				Parent = holder,
 			})
 			a += w
 		end
 		-- thin white divider at each slice edge
-		Kit.new("Frame", { BorderSizePixel = 0, BackgroundColor3 = Theme.color.white, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0, 1.5, 0.5, 0), Rotation = seg.start, ZIndex = 2, Parent = self.wheel })
+		local edge = Kit.new("Frame", { BackgroundTransparency = 1, Size = UDim2.fromScale(1, 1), Rotation = seg.start, ZIndex = 2, Parent = self.wheel })
+		Kit.new("Frame", { BorderSizePixel = 0, BackgroundColor3 = Theme.color.white, AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(0, 1.5, 0.5, 0), ZIndex = 2, Parent = edge })
 	end
 end
 
