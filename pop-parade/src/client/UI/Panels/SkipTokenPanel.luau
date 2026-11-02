@@ -54,8 +54,7 @@ function SkipTokenPanel._confirm(self: any)
 	end
 	self.busy = true
 	Kit.setEnabled(self.confirm, false)
-	local action, payload = ctx.Actions.useSkipToken(v.stageId)
-	ctx.client:request(action, payload, function(r)
+	ctx.server:useSkipToken(v.stageId, function(r)
 		self.busy = false
 		if r.ok then
 			self.panel:close()

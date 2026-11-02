@@ -16,8 +16,7 @@ function SettingsPanel.new(ctx: any)
 	local body = self.panel.body
 	local function send(key: string, value: any)
 		ctx.settings:applyLocal(key, value)
-		local action, payload = ctx.Actions.setSetting(key, value)
-		ctx.client:request(action, payload, function(r)
+		ctx.server:setSetting(key, value, function(r)
 			if not r.ok then
 				ctx.toastError(r.code)
 			end
@@ -45,8 +44,7 @@ function SettingsPanel.new(ctx: any)
 	local speed, setSpeed = Kit.slider(S.t("settings.speed"), 12, 16, 1, 16, function(v)
 		return tostring(v)
 	end, function(v)
-		local action, payload = ctx.Actions.setMoveSpeed(v)
-		ctx.client:request(action, payload, function(r)
+		ctx.server:setMoveSpeed(v, function(r)
 			if not r.ok then
 				ctx.toastError(r.code)
 			end

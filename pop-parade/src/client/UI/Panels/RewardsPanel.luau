@@ -62,9 +62,8 @@ function RewardsPanel.new(ctx: any)
 	self.boostInfo = Kit.label("", { size = 16, order = 15 })
 	self.boostInfo.Parent = body
 	self.boostUse = Kit.button({ text = S.t("rewards.boost_use"), color = Theme.color.xp, size = UDim2.new(1, 0, 0, 52), order = 16, onClick = function()
-		local action, payload = ctx.Actions.consumeItem("consumable.double_xp")
 		Kit.setEnabled(self.boostUse, false)
-		ctx.client:request(action, payload, function(r)
+		ctx.server:consumeItem("consumable.double_xp", function(r)
 			if not r.ok then
 				ctx.toastError(r.code)
 			end
@@ -83,8 +82,7 @@ function RewardsPanel._claim(self: any)
 	end
 	self.claiming = true
 	Kit.setEnabled(self.claim, false)
-	local action, payload = ctx.Actions.claimDaily()
-	ctx.client:request(action, payload, function(r)
+	ctx.server:claimDaily(function(r)
 		self.claiming = false
 		if r.ok then
 			ctx.audio:ui("ui.reward")

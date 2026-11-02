@@ -84,8 +84,7 @@ function InventoryPanel.refresh(self: any, state: any)
 				if id == "consumable.skip_token" then
 					ctx.openPanel("SkipToken")
 				else
-					local action, payload = ctx.Actions.consumeItem(id)
-					ctx.client:request(action, payload, function(r)
+					ctx.server:consumeItem(id, function(r)
 						if r.ok then
 							ctx.toast(S.t("rewards.boost_remaining", { time = ctx.Format.duration(r.data and r.data.remainingSeconds or 0) }), "good")
 						else
@@ -100,8 +99,7 @@ function InventoryPanel.refresh(self: any, state: any)
 			local slot = if self.cat == "Sound" then "Sound" else self.cat
 			local equipped = state.equipped and state.equipped[slot] == id
 			card = ItemCard.new(self.list, Content, id, i, if equipped then S.t("ui.equipped") else S.t("ui.equip"), function()
-				local action, payload = ctx.Actions.equipItem(slot, id)
-				ctx.client:request(action, payload, function(r)
+				ctx.server:equipItem(slot, id, function(r)
 					if not r.ok then
 						ctx.toastError(r.code)
 					end

@@ -41,8 +41,7 @@ end
 
 function SoundPanel._equip(self: any, id: string)
 	local ctx = self.ctx
-	local action, payload = ctx.Actions.equipItem("Sound", id)
-	ctx.client:request(action, payload, function(r)
+	ctx.server:equipItem("Sound", id, function(r)
 		if not r.ok then
 			ctx.toastError(r.code)
 		end

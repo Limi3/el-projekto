@@ -168,9 +168,8 @@ function WheelPanel._spin(self: any)
 	self.result.Text = ""
 	Kit.setEnabled(self.spin, false)
 	Kit.setButtonText(self.spin, ctx.S.t("wheel.spinning"))
-	local action, payload = ctx.Actions.requestSpin()
 	-- retry reuses the same id so the server returns the SAME stored outcome
-	self.pendingId = ctx.client:request(action, payload, function(r)
+	self.pendingId = ctx.server:requestSpin(function(r)
 		self:_onResult(r, false)
 	end, self.pendingId)
 end

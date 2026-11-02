@@ -60,8 +60,7 @@ function UpgradesPanel.new(ctx: any)
 	local sliderRow, setSlider = Kit.slider(S.t("settings.speed"), 12, 16, 1, 16, function(v)
 		return tostring(v)
 	end, function(v)
-		local action, payload = ctx.Actions.setMoveSpeed(v)
-		ctx.client:request(action, payload, function(r)
+		ctx.server:setMoveSpeed(v, function(r)
 			if not r.ok then
 				ctx.toastError(r.code)
 			end
@@ -80,8 +79,7 @@ function UpgradesPanel._buy(self: any, id: string)
 	local ctx = self.ctx
 	self.busy[id] = true
 	Kit.setEnabled(self.rows[id].buy, false)
-	local action, payload = ctx.Actions.buyUpgrade(id)
-	ctx.client:request(action, payload, function(r)
+	ctx.server:buyUpgrade(id, function(r)
 		self.busy[id] = nil
 		if r.ok then
 			ctx.audio:ui("ui.reward")
