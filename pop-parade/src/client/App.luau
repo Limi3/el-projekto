@@ -75,6 +75,8 @@ function App.new(client: any, Content: any, opts: { balance: any?, preview: bool
 	self.ctx = ctx
 
 	-- controllers (order matters: effects before audio, cosmetics before renderer)
+	ctx.graphics = require(Controllers.GraphicsController).new()
+	self.maid:give(ctx.graphics)
 	ctx.effects = require(Controllers.EffectsController).new(Content)
 	ctx.audio = require(Controllers.AudioController).new(Content, ctx.effects)
 	ctx.camera = require(Controllers.CameraShake).new()
@@ -208,9 +210,11 @@ function App.open(self: any, name: string, arg: any?)
 		return
 	end
 	self.openName = name
+	self.ctx.graphics:setMenuOpen(true)
 	p.panel._onClose = function()
 		if self.openName == name then
 			self.openName = nil
+			self.ctx.graphics:setMenuOpen(false)
 			self.menu:focusFirst()
 		end
 	end
@@ -228,6 +232,7 @@ function App.close(self: any)
 		self.panels[name].panel:close()
 	end
 	self.openName = nil
+	self.ctx.graphics:setMenuOpen(false)
 end
 
 function App._applySetting(self: any, key: string, value: any)
@@ -242,10 +247,13 @@ function App._applySetting(self: any, key: string, value: any)
 		local shake = self.client.state and self.client.state.settings and self.client.state.settings.shake ~= false
 		self.boss:setFlags(v, shake)
 		ctx.camera:setEnabled(shake and not v)
+		ctx.graphics:setReduced(v)
 	elseif key == "shake" then
 		local reduced = Kit.reducedMotion
 		self.boss:setFlags(reduced, value == true)
 		ctx.camera:setEnabled(value == true and not reduced)
+	elseif key == "dof" or key == "bloom" or key == "sunRays" or key == "shadows" then
+		ctx.graphics:set(key, value)
 	elseif key == "sfx" then
 		ctx.audio:setVolumes(value, nil)
 	elseif key == "music" then
@@ -260,7 +268,7 @@ function App._onState(self: any, state: any, prev: any)
 	-- settings from the server (authoritative copy)
 	local st = state.settings or {}
 	local pst = prev and prev.settings or {}
-	for _, key in { "reducedEffects", "shake", "sfx", "music" } do
+	for _, key in { "reducedEffects", "shake", "sfx", "music", "dof", "bloom", "sunRays", "shadows" } do
 		if prev == nil or st[key] ~= pst[key] then
 			self:_applySetting(key, st[key])
 		end
