@@ -24,6 +24,15 @@ return {
 			for _, n in { "speed", "attack", "needle" } do
 				t.ok(Strings.has("stat." .. n), "stat." .. n)
 			end
+			for _, n in { "section.1", "section.2", "section.3", "section.4", "section.5", "section.boss" } do
+				t.ok(Strings.has("stage." .. n), "stage." .. n)
+			end
+			for _, k in { "boss.intro_title", "boss.intro_sub", "boss.victory_title", "boss.victory_sub", "run.defeat_title", "run.defeat_sub", "parkour.finish_title", "parkour.finish_sub" } do
+				t.ok(Strings.has(k), k)
+			end
+			for _, n in { "secret.rubber.waterfall", "secret.hub.big_top", "secret.rubber.underbridge" } do
+				t.ok(Strings.has(n) and Strings.has(n .. ".desc"), n)
+			end
 			for _, n in { "NOT_READY", "INVALID_REQUEST", "RATE_LIMITED", "INSUFFICIENT_FUNDS", "NOT_OWNED", "LOCKED", "UNAVAILABLE", "ALREADY_CLAIMED", "TIMEOUT" } do
 				t.ok(Strings.has("err." .. n), "err." .. n)
 			end
