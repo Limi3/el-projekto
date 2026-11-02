@@ -211,6 +211,12 @@ local en: { [string]: string } = {
 	["settings.reduced"] = "Reduced motion & effects",
 	["settings.shake"] = "Screen shake",
 	["settings.speed"] = "Movement speed",
+	["settings.graphics"] = "Graphics",
+	["settings.dof"] = "Depth of field",
+	["settings.bloom"] = "Glow (bloom)",
+	["settings.sunRays"] = "Sun rays",
+	["settings.shadows"] = "Shadows",
+	["settings.graphics_note"] = "Turn these off if the game feels slow. Reduced motion also turns off depth of field and sun rays.",
 	["settings.on"] = "On",
 	["settings.off"] = "Off",
 
