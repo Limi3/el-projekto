@@ -7,6 +7,10 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 local Lighting = game:GetService("Lighting")
 local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+
+-- Build the world before anyone spawns (otherwise early characters fall into the void).
+Players.CharacterAutoLoads = false
 
 local WorldBuilder = require(ServerScriptService:WaitForChild("PopParadeWorld"):WaitForChild("WorldBuilder") :: ModuleScript) :: any
 
@@ -36,3 +40,21 @@ print(string.format(
 for id, report in manifest.validation do
 	print(string.format("[PopParade TEST PREVIEW] %s validation ok=%s %s", id, tostring(report.ok), game:GetService("HttpService"):JSONEncode(report.stats)))
 end
+
+-- Spawn everyone now that the SpawnLocation exists, and auto-respawn afterwards.
+local function spawnPlayer(plr: Player)
+	plr.CharacterAdded:Connect(function(char)
+		local hum = char:WaitForChild("Humanoid") :: Humanoid
+		hum.Died:Connect(function()
+			task.wait(2)
+			if plr.Parent then
+				plr:LoadCharacterAsync()
+			end
+		end)
+	end)
+	plr:LoadCharacterAsync()
+end
+for _, plr in Players:GetPlayers() do
+	task.spawn(spawnPlayer, plr)
+end
+Players.PlayerAdded:Connect(spawnPlayer)
